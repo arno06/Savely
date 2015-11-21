@@ -1,0 +1,18 @@
+{
+	"url":{
+		"regExp":"TextNoHtml",
+		"tag":"input",
+		"attributes":{
+            "placeholder":"Paste your url",
+			"type":"text"
+		}
+	},
+	"submit":{
+		"tag":"input",
+		"attributes":{
+			"type":"submit",
+			"value":"Parse Bro!",
+			"class":"button"
+		}
+	}
+}

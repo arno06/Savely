@@ -1,0 +1,11 @@
+SetEnv PHP_VER 5_3
+
+Options +FollowSymLinks
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . index.php [L]
+
+<Files *.json>
+	deny from all
+</Files>

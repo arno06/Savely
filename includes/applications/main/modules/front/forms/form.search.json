@@ -1,0 +1,15 @@
+{
+	"q":
+	{
+		"tag":"input",
+		"attributes":{
+			"type":"text"
+		}
+	},
+	"submit":{
+		"tag":"input",
+		"attributes":{
+			"type":"submit"
+		}
+	}
+}

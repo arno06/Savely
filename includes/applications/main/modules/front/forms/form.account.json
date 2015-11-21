@@ -1,0 +1,44 @@
+{
+	"username_user":
+	{
+		"require":true,
+		"regExp":"TextNoHtml",
+		"label":"Username",
+		"tag":"input",
+		"attributes":
+		{
+			"type":"text"
+		}
+	},
+	"firstname_user":
+	{
+		"require":true,
+		"regExp":"TextNoHtml",
+		"label":"First name",
+		"tag":"input",
+		"attributes":
+		{
+			"type":"text"
+		}
+	},
+	"lastname_user":
+	{
+		"require":true,
+		"regExp":"TextNoHtml",
+		"label":"Last name",
+		"tag":"input",
+		"attributes":
+		{
+			"type":"text"
+		}
+	},
+	"submit":
+	{
+		"tag":"input",
+		"attributes":
+		{
+			"type":"submit",
+			"value":"SAVE"
+		}
+	}
+}
