@@ -5,7 +5,7 @@ namespace core\application
 	 * Class Autoload
 	 *
 	 * @author Arnaud NICOLAS <arno06@gmail.com>
-	 * @version 1.0
+	 * @version 1.1
 	 * @package core\application
 	 */
 	class Autoload extends Singleton
@@ -38,7 +38,12 @@ namespace core\application
 		/**
 		 * @var array
 		 */
-		private $exeptions = array('PHPMailer'=>'/includes/libs/phpMailer/class.phpmailer.php');
+		private $styleDependencies;
+
+		/**
+		 * @var array
+		 */
+		private $exeptions = array('PHPMailer'=>'/includes/libs/phpMailer/class.phpmailer.php', 'Smarty'=>'/includes/libs/smarty/Smarty.class.php');
 
 
 		/**
@@ -49,6 +54,7 @@ namespace core\application
 			$this->scripts = array();
 			$this->scriptDependencies = array();
 			$this->styles = array();
+			$this->styleDependencies = array();
 		}
 
 
@@ -117,9 +123,19 @@ namespace core\application
 			return false;
 		}
 
+		/**
+		 * Méthode d'ajout d'un composant aux dépendences de la page en cours
+		 * @static
+		 * @param string $pName
+		 */
+		static public function addComponent($pName)
+		{
+			self::addScript($pName);
+			self::addStyle($pName);
+		}
 
 		/**
-		 *
+		 * @static
 		 * @param string $pScript
 		 * @return void
 		 */
@@ -142,15 +158,21 @@ namespace core\application
 		/**
 		 * @static
 		 * @param string $pStyleSheet
-		 * @param bool   $pInThemeFolder
 		 * @return void
 		 */
-		static public function addStyle($pStyleSheet, $pInThemeFolder = true)
+		static public function addStyle($pStyleSheet)
 		{
-			if($pInThemeFolder)
-				$pStyleSheet = Core::$path_to_theme.'/css/'.$pStyleSheet;
-			if(!in_array($pStyleSheet, self::getInstance()->styles, true))
-				self::getInstance()->styles[] = $pStyleSheet;
+			if(preg_match('/\.css$/', $pStyleSheet))
+			{
+				$pStyleSheet = (strpos($pStyleSheet, 'http') === 0) ? $pStyleSheet : Core::$path_to_components . '/' . $pStyleSheet;
+				if(!in_array($pStyleSheet, self::getInstance()->styles, true))
+					self::getInstance()->styles[] = $pStyleSheet;
+			}
+			else
+			{
+				if(!in_array($pStyleSheet, self::getInstance()->styleDependencies, true))
+					self::getInstance()->styleDependencies[] = $pStyleSheet;
+			}
 		}
 
 
@@ -172,18 +194,10 @@ namespace core\application
 		 */
 		static public function styles()
 		{
+			if(!empty(self::getInstance()->styleDependencies))
+				self::getInstance()->styles[] = 'statique/dependencies/?type=css&need='.implode(',', self::getInstance()->styleDependencies);
 			return self::getInstance()->styles;
 		}
 
-
-		/**
-		 * @static
-		 * @param string $pClass
-		 * @return Autoload
-		 */
-		static public function getInstance($pClass = '')
-		{
-			return parent::getInstance(__CLASS__);
-		}
 	}
 }

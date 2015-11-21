@@ -1,12 +1,16 @@
 <?php
 namespace core\tools\form
 {
-	use core\application\Core;
+
+    use core\application\Application;
+    use core\application\Core;
 	use core\data\SimpleJSON;
 	use core\application\Configuration;
 	use core\application\Dictionary;
 	use core\application\Autoload;
-	use \Exception;
+	use core\db\Query;
+    use core\models\ModelUpload;
+    use \Exception;
 	use Smarty;
 
 	/**
@@ -45,7 +49,7 @@ namespace core\tools\form
 		const PATH_TO_UPLOAD_FOLDER = "files/uploads/";
 
 		/**
-		 * Expression réguliére pour une chaine de caractére alpha numérique
+		 * Expression régulière pour une chaine de caractére alpha numérique
 		 * @var String
 		 */
 		static public $regExp_AlphaNumeric= '/^[0-9a-z\_\-]+$/i';
@@ -53,13 +57,13 @@ namespace core\tools\form
 		static public $regExp_Password= '/^[0-9a-z]{6,}$/i';
 
 		/**
-		 * Expression réguliére de mail - PhpMailer
+		 * Expression régulière de mail - PhpMailer
 		 * @var String
 		 */
 		static public $regExp_Mail = '/^(?:[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+\.)*[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+@(?:(?:(?:[a-zA-Z0-9_](?:[a-zA-Z0-9_\-](?!\.)){0,61}[a-zA-Z0-9_-]?\.)+[a-zA-Z0-9_](?:[a-zA-Z0-9_\-](?!$)){0,61}[a-zA-Z0-9_]?)|(?:\[(?:(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\.){3}(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\]))$/';
 
 		/**
-		 * Expression réguliére pour un chiffre/nombre
+		 * Expression régulière pour un chiffre/nombre
 		 * @var String
 		 */
 		static public $regExp_Numeric = '/^[0-9]+$/';
@@ -70,19 +74,19 @@ namespace core\tools\form
 		static public $regExp_Date = '/^((19|20)[0-9]{2})\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/';
 
 		/**
-		 * Expression réguliére pour du texte (autorise tout type de caractére)
+		 * Expression régulière pour du texte (autorise tout type de caractére)
 		 * @var String
 		 */
 		static public $regExp_Text = '/.{1,}/';
 
 		/**
-		 * Expression réguliére d'un url http://www.domain.ext/
+		 * Expression régulière d'un url http://www.domain.ext/
 		 * @var String
 		 */
 		static public $regExp_Url = '/^http\:\/\/www\.[a-z0-9\_\-\?\&]\.[a-z]{2,3}\/$/';
 
 		/**
-		 * Expression réguliére des chaines de caractéres interdisant le <html>
+		 * Expression régulière des chaines de caractéres interdisant le <html>
 		 * @var String
 		 */
 		static public $regExp_TextNoHtml = '/^[^\<\>]{1,}$/i';
@@ -157,7 +161,7 @@ namespace core\tools\form
 		private $uploadsSendFail = array();
 
 		/**
-		 * Tableau des champs du formulaire dont la valeur est incorrecte (Expression Réguliére non vérifiée par exemple)
+		 * Tableau des champs du formulaire dont la valeur est incorrecte (Expression régulière non vérifiée par exemple)
 		 * @var array
 		 */
 		private $inputsIncorrect = array();
@@ -174,7 +178,7 @@ namespace core\tools\form
 		private $inputsWithConfirm = array();
 
 		/**
-		 * Tableau des champs obligatoires du formulaire dont les valeurs ne sont pas valides (vide ou expression Réguliére non vérifiée)
+		 * Tableau des champs obligatoires du formulaire dont les valeurs ne sont pas valides (vide ou expression régulière non vérifiée)
 		 * @var	array
 		 */
 		private $inputsRequire = array();
@@ -202,10 +206,7 @@ namespace core\tools\form
 			$this->name = $pName;
 			if(!$pReal)
 				return;
-			if(Core::$isBackoffice)
-				$module = "back";
-			else
-				$module = "front";
+            $module = Core::$module;
 			$formFile = Core::$path_to_application."/modules/".$module."/forms/form.".$pName.".json";
 			try
 			{
@@ -239,12 +240,13 @@ namespace core\tools\form
 		/**
 		 *
 		 */
-		private function cleanDatas()
+		private function cleanData()
 		{
 			if($this->dataCleaned)
 				return;
 			$this->dataCleaned = true;
 			$default = array(
+                "errorLabel"=>"",
 				"label"=>"",
 				"require"=>false,
 				"attributes"=>array(),
@@ -263,7 +265,7 @@ namespace core\tools\form
 					"parameters"=>array()
 				)
 			);
-			$parseLabels = !Core::$isBackoffice&&Configuration::$site_multilanguage;
+			$parseLabels = false;
 			foreach($this->data as &$input)
 			{
 				foreach($default as $n=>$v)
@@ -281,6 +283,8 @@ namespace core\tools\form
 				}
 				if($parseLabels&&!empty($input["label"]))
 					$input["label"] = Dictionary::term($input["label"]);
+                else if(!$parseLabels && empty($input['label']) && isset($input['attributes']) && isset($input['attributes']['placeholder']))
+                    $input['errorLabel'] = $input['attributes']['placeholder'];
 			}
 		}
 
@@ -293,7 +297,7 @@ namespace core\tools\form
 		 */
 		public function isValid()
 		{
-			$this->cleanDatas();
+			$this->cleanData();
 			$this->error = "";
 			if(!isset($_POST[$this->name])||empty($_POST[$this->name]))
 				return false;
@@ -473,7 +477,8 @@ namespace core\tools\form
 								$p = trim($p);
 						}
 					}
-					if($this->post[$name]!==0&&empty($this->post[$name]))
+
+					if($this->post[$name]!==0&&$this->post[$name]!=='0'&&empty($this->post[$name]))
 					{
 						if(isset($data["isAlternativeFor"])&&isset($this->data[$data["isAlternativeFor"]])&&!empty($this->post[$data["isAlternativeFor"]]))
 							continue;
@@ -491,7 +496,7 @@ namespace core\tools\form
 				}
 				if($data["require"]==true&&empty($data["regExp"]))
 				{
-					trigger_error("Les champs obligatoires doivent nécessairement renseigner une expression réguliére &agrave; respecter !<br/>Formulaire <b>".$this->name."</b> champ <b>".$name."</b>", E_USER_ERROR);
+					trigger_error("Les champs obligatoires doivent nécessairement renseigner une expression régulière &agrave; respecter !<br/>Formulaire <b>".$this->name."</b> champ <b>".$name."</b>", E_USER_ERROR);
 				}
 				if(empty($data["regExp"]))
 				{
@@ -520,8 +525,6 @@ namespace core\tools\form
 				if(!$valid)
 				{
 					$this->inputsIncorrect[] = $name;
-//				if($data["require"] == true)
-//					$this->inputsRequire[] = $name;
 					unset($this->post[$name]);
 					$this->isValid = false;
 					continue;
@@ -535,7 +538,7 @@ namespace core\tools\form
 		 * @param string $pName
 		 * @return void
 		 */
-		private function applyModifiers($pModifiers, $pName)
+		protected function applyModifiers($pModifiers, $pName)
 		{
 			if(!is_array($pModifiers))
 				return;
@@ -546,14 +549,14 @@ namespace core\tools\form
 		}
 
 		/**
-		 * Méthode de récupération de l'expression réguliére en fonction de l'information saisie dans le fichier de déclaration JSON
-		 * Cette expression réguliére peut se présenter sous deux formats :
+		 * Méthode de récupération de l'expression régulière en fonction de l'information saisie dans le fichier de déclaration JSON
+		 * Cette expression régulière peut se présenter sous deux formats :
 		 * 					- Nom d'une expression disponible de base. Voir les propriétés statics Form::$regExp_NOM
-		 * 					- Une expression réguliére directement spécifiée dans le JSON, celle-ci devra étre déclarée de la mnaiére suivante : custom:/[votre expression]/
-		 * @param String $pRegExp		Valeur de l'expression réguliére telle qu'elle est déclarée dans le JSON
+		 * 					- Une expression régulière directement spécifiée dans le JSON, celle-ci devra étre déclarée de la mnaiére suivante : custom:/[votre expression]/
+		 * @param String $pRegExp		Valeur de l'expression régulière telle qu'elle est déclarée dans le JSON
 		 * @return String
 		 */
-		private function getRegExp($pRegExp)
+		protected function getRegExp($pRegExp)
 		{
 			if(preg_match("/^(custom\:)/", $pRegExp, $extract, PREG_OFFSET_CAPTURE))
 				return preg_replace("/^(custom\:)/", "", $pRegExp);
@@ -620,9 +623,9 @@ namespace core\tools\form
 				if($i>0)
 					$error.= ", ";
 				if(!is_array($pArray[$i]))
-					$error .= "<b>".(isset($this->data[$pArray[$i]]["errorLabel"])?$this->data[$pArray[$i]]["errorLabel"]:$this->data[$pArray[$i]]["label"])."</b>";
+					$error .= "<b>".(isset($this->data[$pArray[$i]]["errorLabel"])&&!empty($this->data[$pArray[$i]]["errorLabel"])?$this->data[$pArray[$i]]["errorLabel"]:$this->data[$pArray[$i]]["label"])."</b>";
 				else
-					$error .= "<b>".(isset($this->data[$pArray[$i][0]]["errorLabel"])?$this->data[$pArray[$i][0]]["errorLabel"]:$this->data[$pArray[$i][0]]["label"])."</b> &amp; <b>".(isset($this->data[$pArray[$i][1]]["errorLabel"]) ? $this->data[$pArray[$i][1]]["errorLabel"] : $this->data[$pArray[$i][1]]["label"])."</b>";
+					$error .= "<b>".(isset($this->data[$pArray[$i][0]]["errorLabel"])&&!empty($this->data[$pArray[$i][0]]["errorLabel"])?$this->data[$pArray[$i][0]]["errorLabel"]:$this->data[$pArray[$i][0]]["label"])."</b> &amp; <b>".(isset($this->data[$pArray[$i][1]]["errorLabel"]) ? $this->data[$pArray[$i][1]]["errorLabel"] : $this->data[$pArray[$i][1]]["label"])."</b>";
 			}
 			if($nb==1)
 			{
@@ -641,10 +644,27 @@ namespace core\tools\form
 		/**
 		 * Méthode de renommage des fichiers uploadés en fonction de l'id de l'entrée enregistrée
 		 * Renvoi le tableau associatif des nouveaux de fichiers pour l'update de la base
+         * @param string|int $pId
 		 * @return array
 		 */
-		public function setUploadFileName()
+		public function setUploadFileName($pId = null)
 		{
+            foreach($this->data as $name=>&$inp)
+            {
+                if(isset($inp['tag']) && $inp['tag'] == self::TAG_UPLOAD && isset($this->post[$name]) && !empty($this->post[$name]))
+                {
+                    if((!isset($inp['fileName'])) || (!preg_match('/(\{id\})/', $inp['fileName'])))
+                        continue;
+                    $folderName = self::PATH_TO_UPLOAD_FOLDER;
+                    if(isset($inp['folder']))
+                        $folderName .= $inp['folder'];
+                    $fileName = preg_replace("/(\{id\})/",$pId, $inp["fileName"]);
+                    $newPath = $folderName.$fileName;
+                    $id_upload = $this->post[$name];
+                    $m = new ModelUpload();
+                    $m->renameById($id_upload, $newPath);
+                }
+            }
 			$newFileName = array();
 			$max = count($this->uploads);
 			for($i = 0; $i<$max; ++$i)
@@ -653,7 +673,8 @@ namespace core\tools\form
 				$name = $upload["name"];
 				/** @var Upload $up */
 				$up = $upload["instance"];
-				$pId = $up->id_upload;
+                if($pId == null)
+				    $pId = $up->id_upload;
 				if($this->data[$name]["fileName"])
 				{
 					$fileName = preg_replace("/(\{id\})/",$pId,$this->data[$name]["fileName"]);
@@ -704,7 +725,7 @@ namespace core\tools\form
 		 */
 		public function prepareToView()
 		{
-			$this->cleanDatas();
+			$this->cleanData();
 			if(isset($this->post))
 				$this->injectValues($this->post);
 			Autoload::addScript("Form");
@@ -719,33 +740,30 @@ namespace core\tools\form
 						Autoload::addScript("ckeditor/ckeditor.js");
 						break;
 					case self::TAG_UPLOAD:
-						trace("you must handle upload");
-						Autoload::addScript("Uploader");
+						Autoload::addComponent("Uploader");
 						Autoload::addScript("M4Tween");
-						Autoload::addStyle('includes/components/uploader/Uploader.css', false);
 						$this->hasUpload = true;
 						break;
 					case self::TAG_INPUT:
 						if(isset($data["attributes"]["type"])&&$data["attributes"]["type"]=="checkbox")
 							unset($data["attributes"]["valueOff"]);
 						if(isset($data["autoComplete"]))
-							Autoload::addScript("yui/yui.min.js");
+                            Autoload::addComponent('Autocomplete');
 						if(isset($data["attributes"]["type"])
 							&& $data["attributes"]["type"]=="file")
 						{
-							Autoload::addScript("Uploader");
+							Autoload::addComponent("Uploader");
 							Autoload::addScript("M4Tween");
-							Autoload::addStyle('includes/components/uploader/Uploader.css', false);
 							$this->hasUpload = true;
 						}else if(isset($data["attributes"]["type"])
 							&& $data["attributes"]["type"]=="submit"
-							&& Configuration::$site_multilanguage)
+							&& Application::getInstance()->multiLanguage)
 						{
 							$data["attributes"]["value"] = Dictionary::term($data["attributes"]["value"]);
 						}
 						break;
 					case self::TAG_DATEPICKER:
-						Autoload::addScript("Pikaday");
+						Autoload::addComponent("Pikaday");
 						$this->hasDatePicker = true;
 						break;
 					case self::TAG_COLORPICKER:
@@ -778,8 +796,8 @@ namespace core\tools\form
 								}
 								else
 								{
-									$donnees_name = $donnees[$fm["name"]];
-									$donnees_value = $donnees[$fm["value"]];
+									$donnees_name = isset($donnees[$fm['name']])?$donnees[$fm["name"]]:'';
+									$donnees_value = isset($donnees[$fm['value']])?$donnees[$fm["value"]]:'';
 								}
 								$options[] = array("name"=>$donnees_name, "label"=>$donnees_name, "value"=>$donnees_value, "checked"=>$defaultChecked);
 							}
@@ -791,7 +809,8 @@ namespace core\tools\form
 						if(isset($data["chosen"]) && $data["chosen"]==true)
 						{
 							Autoload::addScript("chosen/chosen.min.js");
-							Autoload::addStyle(Core::$path_to_components."/chosen/style/chosen.css", false);
+                            /** @todo componentify this */
+							Autoload::addStyle(Core::$path_to_components."/chosen/style/chosen.css");
 						}
 						break;
 				}
@@ -909,17 +928,17 @@ namespace core\tools\form
 		{
 			$noForm = false;
 			$noMandatory = false;
-			$controller = $action = $output = $idForm = "";
+			$output = $idForm = $classes = "";
+            $controller = Core::$controller;
+            $action = Core::$action;
 			$helper = "core\\tools\\form\\FormHelpers";
 			if($pParams != null)
 				extract($pParams, EXTR_REFS);
 
-			if($this->hasDatePicker)
-				$output .= '<link type="text/css" rel="stylesheet" href="'.Core::$path_to_components.'/pikaday/pikaday.css"/>';
 			if(!$noForm)
 			{
 				$n = array();
-				$s = array("controller", "action", "noForm", "helper", "idForm");
+				$s = array("controller", "action", "noForm", "noMandatory", "helper", "idForm", "classes");
 				foreach($pParams as $np=>$vp)
 				{
 					if(in_array($np, $s))
@@ -927,11 +946,13 @@ namespace core\tools\form
 					$n[$np] = $vp;
 				}
 				$pParams = $n;
-				$output .= '<form action="'.Core::rewriteURL($controller, $action, $pParams, Configuration::$site_currentLanguage).'" method="post"';
+				$output .= '<form action="'.Core::rewriteURL($controller, $action, $pParams, Application::getInstance()->currentLanguage).'" method="post"';
 				if($this->hasUpload)
 					$output .= ' enctype="multipart/form-data"';
 				if (!empty($idForm))
 					$output .= ' id="'.$idForm.'" ';
+				if (!empty($classes))
+					$output .= ' class="'.$classes.'" ';
 				$output .='>';
 			}
 			if($this->countMendatory>0 && !$noMandatory)
@@ -979,7 +1000,7 @@ namespace core\tools\form
 
 
 		/**
-		 * Méthode utilitaire permettant de vérifier si une chaine de caractéres correspond é l'expression réguliére numérique
+		 * Méthode utilitaire permettant de vérifier si une chaine de caractéres correspond é l'expression régulière numérique
 		 * @param String $pVar				Valeur é tester
 		 * @return Boolean
 		 */
@@ -1131,10 +1152,15 @@ namespace core\tools\form
 				return "";
 			$style = "overflow:auto;";
 			if(isset($pData["height"]))
-					$style .= "height:".$pData["height"].";";
+				$style .= "height:".$pData["height"].";";
 			if(isset($pData["width"]))
 				$style .= "width:".$pData["width"].";";
-			$group = "<div class='checkboxgroup' style='".$style."'>";
+
+			$class = '';
+			if (isset($pData["attributes"]["class"])) {
+				$class = ' '.$pData["attributes"]["class"];
+			}
+			$group = "<div class='checkboxgroup".$class."' style='".$style."'>";
 			$i = 0;
 			$style = "";
 			if(isset($pData["display"])&&$pData["display"]=="block")
@@ -1153,11 +1179,11 @@ namespace core\tools\form
 					$value = $opt["value"];
 					$label = $opt["label"];
 					$i++;
-					$defaultChecked = $opt["checked"];
+					$defaultChecked = array_key_exists('checked', $opt) ? $opt["checked"] : false;
 					$c = "";
 					if($defaultChecked || in_array($value, $values))
 						$c = " checked";
-					$group .= "<span class='checkbox'><input type='checkbox' name='".$pName."[]' id='".$pName."_".$i."' value='".$value."'".$c."/>&nbsp;&nbsp;<label for='".$pName."_".$i."'>".$label."</label></span>";
+					$group .= '<span class="checkbox" '.$style.'><input type="checkbox" name="'.$pName.'[]" id="'.$pName.'_'.$i.'" value="'.$value.'" '.$c.' />&nbsp;&nbsp;<label for="'.$pName.'_'.$i.'">'.$label.'</label></span>';
 				}
 			}
 			else
@@ -1173,8 +1199,9 @@ namespace core\tools\form
 			self::$ct_upload++;
 			$file = $style = $value = "";
 			$server_url = Configuration::$server_url;
-			if(Configuration::$site_application!="main")
-				$server_url .= "../";
+            /**
+             * @todo concaténer la valeur du relative path de l'application en cours à $server_url ?
+             */
 
 			$disabled = isset($pData["attributes"]["disabled"]) && $pData["attributes"]["disabled"] == "disabled"?"disabled":"";
 
@@ -1182,13 +1209,23 @@ namespace core\tools\form
 			{
 				$value = $pData["attributes"]["value"];
 				$file = $server_url;
-				$m = (isset($pData["model"]) && !empty($pData["model"])) ? $pData["model"] : "ModelUpload";
+                /** @var ModelUpload $m */
+				$m = (isset($pData["model"]) && !empty($pData["model"])) ? $pData["model"] : "core\\models\\ModelUpload";
 				if(Form::isNumeric($value))
-					$file .= $m::getPathById($value);
+					$file .= Application::getInstance()->getPathPart().$m::getPathById($value);
 				else
 					$file .= $value;
 			}
-			$comp = "<input ".$disabled." type='file' name='".$pName."_input' data-form_name='".$pData["form_name"]."' data-input_name='".$pData["field_name"]."' data-application='".Configuration::$site_application."' data-value='".$value."' data-file='".$file."'>";
+            $deleteFileAction = "";
+            if(isset($pData['deleteFileAction']) && !empty($pData['deleteFileAction']))
+            {
+                if($value&&Form::isNumeric($value))
+                    $action = preg_replace('/\{id\}/', $value, $pData['deleteFileAction']);
+                else
+                    $action = $pData['deleteFileAction'];
+                $deleteFileAction = 'data-delete_file_action="'.$action.'"';
+            }
+			$comp = "<input ".$disabled." type='file' name='".$pName."_input' data-form_name='".$pData["form_name"]."' data-input_name='".$pData["field_name"]."' data-application='".Core::$application."' data-value='".$value."' data-file='".$file."' data-module='".Core::$module."'".$deleteFileAction.">";
 			$input = self::getLabel($pData["label"].$pRequire, $pId);
 			$input .= self::getComponent($comp, 'upload');
 			return $input;
@@ -1219,6 +1256,7 @@ namespace core\tools\form
 			foreach($attributes as $name=>$value)
 				$component .= $name."='".$value."' ";
 			$component .= "/>";
+			$component .= "<label for='".$attributes["id"]."' class='datepicker-icon'></label>";
 			$extra = self::script("var picker = new Pikaday({ field: document.getElementById('".$attributes["id"]."') });",'',true);
 			$input = self::getLabel($pData["label"].$pRequire, $pId);
 			$input .= self::getComponent($component.$extra);
@@ -1260,7 +1298,12 @@ namespace core\tools\form
 				$style .= "height:".$pData["height"].";";
 			if(isset($pData["width"]))
 				$style .= "width:".$pData["width"].";";
-			$group = "<div class='radiogroup' style='".$style."'>";
+
+			$class = '';
+			if (isset($pData["attributes"]["class"])) {
+				$class = ' '.$pData["attributes"]["class"];
+			}
+			$group = "<div class='radiogroup".$class."' style='".$style."'>";
 			$i = 0;
 			$style = "";
 			if(isset($pData["display"])&&$pData["display"]=="block")
@@ -1313,6 +1356,14 @@ namespace core\tools\form
 			$input = self::getLabel($label, $pId, !$inline);
 			if($pData["tag"] == Form::TAG_SELECT && isset($pData["attributes"]["multiple"]) && $pData["attributes"]["multiple"] == "multiple")
 				$pName .= "[]";
+            if(isset($pData["autoComplete"])
+                &&isset($pData["attributes"]["type"])
+                &&$pData["attributes"]["type"]=="text")
+            {
+                $pData["attributes"]["data-ac_minQueryLength"] = "3";
+                $pData["attributes"]["data-ac_resultsLocator"] = "responses";
+                $pData["attributes"]["data-ac_source"] = "statique/autocomplete/application:".Core::$application."/module:".Core::$module."/form_name:".$pData["form_name"]."/input_name:".$pData["field_name"]."/q:{query}/";
+            }
 			$component = '<'.$pData["tag"].' name="'.$pName.'" id="'.$pId.'"';
 			foreach($pData["attributes"] as $prop=>$value)
 			{
@@ -1363,31 +1414,7 @@ namespace core\tools\form
 						&&isset($pData["attributes"]["type"])
 						&&$pData["attributes"]["type"]=="text")
 					{
-						$on = "";
-						if(isset($pData["autoComplete"]["on"])&&is_array($pData["autoComplete"]["on"]))
-						{
-							$on = "on:{";
-							$cb = array();
-							foreach($pData["autoComplete"]["on"] as$name=>$callBack)
-								$cb[] = "'".$name."':".$callBack."";
-							$on .= implode(",", $cb);
-							$on .= "},";
-						}
-						$minQueryLength = "";
-						if (isset($pData["autoComplete"]["minQueryLength"]) && Form::isNumeric($pData["autoComplete"]["minQueryLength"]))
-						{
-							$minQueryLength = "minQueryLength:".$pData["autoComplete"]["minQueryLength"].",";
-						}
-						$extra .= self::script("
-						YUI().use('autocomplete', 'autocomplete-highlighters', function (Y) {
-						  Y.one('#".$pId."').plug(Y.Plugin.AutoComplete, {
-							resultHighlighter: 'phraseMatch',
-							resultListLocator: 'responses',
-							resultTextLocator: 'value',".$minQueryLength.$on."
-							source: 'statique/autocomplete/application:".Configuration::$site_application."/is_backoffice:".Core::$isBackoffice."/form_name:".$pData["form_name"]."/input_name:".$pData["field_name"]."/q:{query}/'
-						  });
-						});
-					", "", true);
+						$extra .= self::script("Autocomplete.applyTo('#".$pId."');");
 					}
 					break;
 				case "select":
@@ -1406,6 +1433,8 @@ namespace core\tools\form
 					', "", true);
 					}
 					$options = "";
+                    if(!isset($pData["options"]))
+                        $pData["options"] = array();
 					if(!$pData["require"] && (!(isset($pData["attributes"]["multiple"]) || $pData["attributes"]["multiple"] == "multiple")))
 					{
 						$d = array("value"=>"", "name"=>"");

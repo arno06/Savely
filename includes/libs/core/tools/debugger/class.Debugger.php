@@ -8,12 +8,11 @@ namespace core\tools\debugger
 	use core\utils\Logs;
 	use core\application\Autoload;
 	use core\application\Header;
-	use Smarty;
-	use Exception;
+	use \Smarty;
+	use \Exception;
 
 	/**
 	 * Class Debugger - Permet de centraliser les éventuelles "sorties" permettant de debugger l'application
-	 *
 	 * 			Gère :
 	 * 				- les Erreurs
 	 * 				- les Exceptions
@@ -91,7 +90,7 @@ namespace core\tools\debugger
 			self::getInstance()->count[$pClass]++;
 			$pClass .= " ".self::$state;
 			self::$state = self::$state == "odd"?"even":"odd";
-			self::getInstance()->consoles .= "<tr class='".$pClass."'><td class='date'>".(gmdate("H:i:s", $time[0] + $decalage).",".$time[1])."</td><td class='".$pClass."'></td><td class='message'>".$pMessage."</td><td class='file'>".$pFile.":".$pLine."</td></tr>";
+			self::getInstance()->consoles .= "<tr class='".$pClass."'><td class='date'>".(gmdate("H:i:s", $time[0] + $decalage).",".$time[1])."</td><td class='".$pClass."'>&nbsp;&nbsp;</td><td class='message'>".$pMessage."</td><td class='file'>".$pFile.":".$pLine."</td></tr>";
 		}
 
 		/**
@@ -152,18 +151,31 @@ namespace core\tools\debugger
 
 		/**
 		 * Méthode d'affichage du debugger
-		 * @param Smarty $smarty
 		 * @param bool $pDisplay
 		 * @param bool $pError
 		 * @return string
 		 */
-		static public function renderHTML($smarty = null, $pDisplay = true, $pError = false)
+		static public function render($pDisplay = true, $pError = false)
 		{
-			if($smarty==null)
-				$smarty = new Smarty();
+            $className = "Smarty";
+            if(!class_exists('Smarty'))
+            {
+                /**
+                 * 20150827 - Note from me to me : if Smarty is not defined, then we load it manually
+                 * And because of namespace handling in PHP, if an error occurs while defining a class,
+                 * the current definition namespace will be stuck and there will be no way to load a new
+                 * class in another one.
+                 * If you dont trust the young you look up to $classes.
+                 */
+                Autoload::getInstance()->load("Smarty");
+                $classes = get_declared_classes();
+                $className = end($classes);
+            }
+            /** @var Smarty $smarty */
+            $smarty = new $className();
 			$smarty->clear_all_assign();
-			$smartyDir = Autoload::$folder."/includes/libs/core/tools/debugger/templates/_cache";
-			$smarty->template_dir = Autoload::$folder."/includes/libs/core/tools/debugger/templates";
+			$smartyDir = "includes/libs/core/tools/debugger/templates/_cache/";
+			$smarty->template_dir = "includes/libs/core/tools/debugger/templates";
 			$smarty->cache_dir = $smartyDir;
 			$smarty->compile_dir = $smartyDir;
 			$globalVars = self::getGlobalVars();
@@ -245,12 +257,11 @@ namespace core\tools\debugger
 		 * @param String $pErrorMessage						Message renvoyé
 		 * @param String $pErrorFile						Adresse du fichier qui a déclenché l'erreur
 		 * @param Number $pErrorLine						Ligne où se trouve l'erreur
-		 * @param object $pErrorContext						Contexte
+		 * @param String $pErrorContext						Contexte
 		 * @return void
 		 */
 		static public function errorHandler($pErrorLevel, $pErrorMessage, $pErrorFile, $pErrorLine, $pErrorContext)
 		{
-			$type = "notice";
 			$stopApplication = false;
 			switch($pErrorLevel)
 			{
@@ -286,12 +297,12 @@ namespace core\tools\debugger
 			{
 				if(!Core::debug())
 				{
-					Logs::write($pErrorMessage." ".$pErrorFile." ".$pErrorLine, $pErrorLevel);
+					Logs::write($pErrorMessage." ".$pErrorFile." ".$pErrorLine." ".$pErrorContext, $pErrorLevel);
 				}
-				Header::content_type("text/html", Configuration::$site_encoding);
+				Header::content_type("text/html", Configuration::$global_encoding);
 				self::$open = true;
-				self::renderHTML(null, true, true);
-				exit();
+				self::render(true, true);
+                Core::endApplication();
 			}
 		}
 
@@ -311,17 +322,7 @@ namespace core\tools\debugger
 		 */
 		static public function prepare()
 		{
-			Autoload::addScript("Debugger");
-		}
-
-		/**
-		 * Singleton
-		 * @param String $pClassName [optional]
-		 * @return Debugger
-		 */
-		static public function getInstance($pClassName = "")
-		{
-			return parent::getInstance(__CLASS__);
+			Autoload::addComponent("Debugger");
 		}
 
 		/**

@@ -57,8 +57,11 @@ namespace core\system
 				fclose($ressource);
 				return $r;
 			}
-			else
-				throw new Exception("Le fichier n'existe pas.");
+			else {
+                $split = explode("/", $pPath);
+                $file = array_pop($split);
+                throw new Exception("Le fichier '".$file."' n'existe pas.");
+            }
 		}
 
 		/**
@@ -151,6 +154,10 @@ namespace core\system
 			return $extracts[1];
 		}
 
+        /**
+         * @param string $pFile
+         * @return bool
+         */
 		static public function isImage($pFile)
 		{
 			$extension = self::getExtension($pFile);

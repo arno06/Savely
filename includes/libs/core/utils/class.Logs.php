@@ -1,8 +1,10 @@
 <?php
 namespace core\utils
 {
-	use core\application\Configuration;
-	use core\system\File;
+
+    use core\application\Autoload;
+    use core\application\Core;
+    use core\system\File;
 	use core\system\Folder;
 
 	/**
@@ -29,9 +31,9 @@ namespace core\utils
 		static final public function write($pMessage, $pLevel= self::NOTICE)
 		{
 			$ip = $_SERVER["REMOTE_ADDR"];
-			$folder = "includes/logs/".date("m-y")."/";
+			$folder = Autoload::$folder."/includes/logs/".date("m-y")."/";
 			$file = date("d-m-y").".txt";
-			$message = "[ ".date("H\hi\ms\s")." ] [".$ip."] [ ".Configuration::$site_application." ] [ ".$pLevel." ]\t\t".$pMessage."\r\n";
+			$message = "[ ".date("H\hi\ms\s")." ] [".$ip."] [ ".Core::$application." ] [ ".$pLevel." ]\t\t".$pMessage."\r\n";
 			Folder::create($folder);
 			File::create($folder.$file);
 			chmod($folder.$file, 0666);
