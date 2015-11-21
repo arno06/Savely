@@ -3,8 +3,8 @@ namespace app\main\controllers\front
 {
 	use app\main\src\BaseFrontController;
 	use core\tools\form\Form;
-	use core\models\ModelAuthentification;
-	use core\application\authentification\AuthentificationHandler;
+	use core\models\ModelAuthentication;
+	use core\application\authentication\AuthenticationHandler;
 
 	class s extends BaseFrontController
 	{
@@ -28,12 +28,12 @@ namespace app\main\controllers\front
 			{
 				$v = $f->getValues();
 
-				$m = ModelAuthentification::getInstance();
+				$m = ModelAuthentication::getInstance();
 
 				$m->updateById($m->getId(), $v);
 			}
 
-			$f->injectValues(AuthentificationHandler::$data);
+			$f->injectValues(AuthenticationHandler::$data);
 
 			$this->addForm('account',$f);
 		}
@@ -47,10 +47,10 @@ namespace app\main\controllers\front
 			if($f->isValid())
 			{
 				$v = $f->getValues();
-				if(ModelAuthentification::getInstance()->changePassword($v['currentPassword'], $v['newPassword']))
+				if(ModelAuthentication::getInstance()->changePassword($v['currentPassword'], $v['newPassword']))
 				{
-					AuthentificationHandler::unsetUserSession();
-					AuthentificationHandler::setUserSession(ModelAuthentification::getInstance()->getLogin(), $v['newPassword']);
+					AuthenticationHandler::unsetUserSession();
+					AuthenticationHandler::setUserSession(ModelAuthentication::getInstance()->getLogin(), $v['newPassword']);
 					$this->addContent('confirmation', 'New Password Saved');
 				}
 				else

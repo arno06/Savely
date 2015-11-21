@@ -63,7 +63,7 @@ var main  = (function(){
 		switch(t.className)
 		{
 			case "icon-bars":
-					Request.load('a/retrieve-states/id_link:'+id_link+'/').onComplete(dataReadyForChartHandler);
+					Request.load('a/retrieve-states/?id_link='+id_link).onComplete(dataReadyForChartHandler);
 				break;
 			case "icon-percent":
 

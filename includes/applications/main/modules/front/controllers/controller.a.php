@@ -3,8 +3,8 @@ namespace app\main\controllers\front
 {
 	use app\main\src\BaseFrontController;
 	use app\main\models\ModelLink;
-	use core\tools\form\Form;
-	use core\application\authentification\AuthentificationHandler;
+    use core\application\authentication\AuthenticationHandler;
+    use core\tools\form\Form;
 	use core\application\Core;
 	use core\application\Go;
 	use core\data\SimpleJSON;
@@ -34,16 +34,16 @@ namespace app\main\controllers\front
 
 				$values = $f->getValues();
 				$url = $values['url'];
-				$this->model_link->addState($url, AuthentificationHandler::$data['id_user']);
+				$this->model_link->addState($url, AuthenticationHandler::$data['id_user']);
 			}
-			$this->addContent('user_links', $this->model_link->retrieveLinksByUser(AuthentificationHandler::$data['id_user']));
+			$this->addContent('user_links', $this->model_link->retrieveLinksByUser(AuthenticationHandler::$data['id_user']));
 		}
 
 		public function remove_link()
 		{
 			if(!Core::checkRequiredGetVars('id'))
 				Go::to404();
-			$this->model_link->removeUserLink($_GET['id'], AuthentificationHandler::$data['id_user']);
+			$this->model_link->removeUserLink($_GET['id'], AuthenticationHandler::$data['id_user']);
 			Core::performResponse('ok');
 		}
 
@@ -61,12 +61,12 @@ namespace app\main\controllers\front
 
 		public function update()
 		{
-			$links = $this->model_link->retrieveLinksByUser(AuthentificationHandler::$data['id_user']);
+			$links = $this->model_link->retrieveLinksByUser(AuthenticationHandler::$data['id_user']);
 			foreach($links as $l)
 			{
 				$this->model_link->updateLink($l['url_link']);
 			}
-			Go::toFront('a');
+			Go::to('a');
 		}
 	}
 }

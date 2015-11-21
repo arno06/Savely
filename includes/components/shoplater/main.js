@@ -131,7 +131,7 @@ var Product = (function(){
 		publicAPI.id = pId;
 		overlay.classList.remove('hidden');
 
-		Request.load('index/details/id:'+pId+'/tab:'+pTab+'/')
+		Request.load('index/details/?id='+pId+'&tab='+pTab)
 			.onComplete(resultHandler);
 	};
 

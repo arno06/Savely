@@ -119,5 +119,10 @@ namespace core\application
 		 * @var string
 		 */
 		static public $authentication_fieldPermissions = "permissions_user";
+
+        /**
+         * @var string
+         */
+        static public $authentication_fieldSalt = "passwordsalt_user";
 	}
 }

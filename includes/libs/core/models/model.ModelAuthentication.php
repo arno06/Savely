@@ -21,25 +21,72 @@ namespace core\models
 
         public function __construct()
         {
-            parent::__construct(sprintf(Configuration::$authentication_tableName,Core::$application), Configuration::$authentication_tableId);
+            parent::__construct(sprintf(Configuration::$authentication_tableName, Core::$application), Configuration::$authentication_tableId);
         }
 
-        static public function isUser($pLogin, $pMdp)
+        static public function isUser($pLogin, $pMdp, $pHash = false)
         {
             if(empty($pLogin)||empty($pMdp))
                 return false;
 
+            /** @var BaseModel $instance */
             $instance = self::getInstance();
 
             if($result = $instance->one(Query::condition()->andWhere(Configuration::$authentication_fieldLogin, Query::EQUAL, $pLogin)))
             {
-                if($result[configuration::$authentication_fieldPassword] == $pMdp)
+                $salt = $result[Configuration::$authentication_fieldSalt];
+                $value = $pMdp;
+                if(!$pHash)
+                    $value = self::computePasswordHash($pMdp, $salt);
+                if($result[configuration::$authentication_fieldPassword] == $value)
                 {
                     self::$data = $result;
                     return true;
                 }
             }
             return false;
+        }
+
+        static private function computeSalt()
+        {
+            return openssl_random_pseudo_bytes(16);
+        }
+
+        static private function computePasswordHash($pPassword, $pSalt)
+        {
+            return sha1(crypt($pPassword, $pSalt));
+        }
+
+        public function changePassword($pCurrentPassword, $pNewPassword)
+        {
+            if($this->getPasswordHash() !== self::computePasswordHash($pCurrentPassword, self::$data[Configuration::$authentication_fieldSalt]))
+                return false;
+
+            $newSalt = self::computeSalt();
+
+            $newPasswordHash = self::computePasswordHash($pNewPassword, $newSalt);
+
+            $this->updateById(self::$data[$this->id], array(
+                Configuration::$authentication_fieldSalt=>$newSalt,
+                Configuration::$authentication_fieldPassword=>$newPasswordHash
+            ));
+
+            return true;
+        }
+
+        public function getId()
+        {
+            return self::$data[$this->id];
+        }
+
+        public function getPasswordHash()
+        {
+            return self::$data[Configuration::$authentication_fieldPassword];
+        }
+
+        public function getLogin()
+        {
+            return self::$data[Configuration::$authentication_fieldLogin];
         }
 
         /**

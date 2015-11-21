@@ -12,7 +12,7 @@
 		<li><a rel="tab:graph"{if $content.tab=='graph'} class="current"{/if}>Price history</a></li>
 		<li><a rel="tab:coupons"{if $content.tab=='coupons'} class="current"{/if}>Coupons</a></li>
 		<li class="right"><a href="{$content.details.canonical_link}" target="_blank" class="sly-button buy">buy</a></li>
-		<li class="right"><a href="a/remove-link/id:{$content.details.id_link}/" class="icon-remove"></a></li>
+		<li class="right"><a href="a/remove-link/?id={$content.details.id_link}" class="icon-remove"></a></li>
 		<li class="right"><a href="" class="icon-tag"></a></li>
 		<li class="right"><a href="" class="icon-link"></a></li>
 		<li class="right"><a href="" class="icon-star"></a></li>

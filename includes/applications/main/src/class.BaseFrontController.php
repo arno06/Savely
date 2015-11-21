@@ -1,19 +1,20 @@
 <?php
 namespace app\main\src
 {
-	use core\application\FrontController;
-	use core\application\authentification\AuthentificationHandler;
+
+    use core\application\authentication\AuthenticationHandler;
+    use core\application\DefaultController;
 	use core\application\Go;
 	use core\tools\form\Form;
 
-	class BaseFrontController extends FrontController
+	class BaseFrontController extends DefaultController
 	{
 		function __construct()
 		{
-
-			if(!AuthentificationHandler::$data)
+            AuthenticationHandler::getInstance();
+			if(!AuthenticationHandler::$data)
 			{
-				Go::toFront();
+                Go::to();
 			}
 
 			$this->addScript('ShopLater');

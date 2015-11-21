@@ -1,9 +1,10 @@
 <?php
 namespace app\main\controllers\front
 {
-    use core\application\FrontController;
+
+    use core\application\authentication\AuthenticationHandler;
+    use core\application\DefaultController;
     use app\main\models\ModelLink;
-    use core\application\authentification\AuthentificationHandler;
     use core\application\Go;
     use core\application\Core;
     use core\application\Dictionary;
@@ -11,12 +12,13 @@ namespace app\main\controllers\front
     use core\tools\PsartekMailer;
     use core\data\SimpleJSON;
 
-    class index extends FrontController
+    class index extends DefaultController
     {
         private $model_link;
 
         public function __construct()
         {
+            AuthenticationHandler::getInstance();
 
             $this->model_link = new ModelLink();
 
@@ -49,14 +51,15 @@ namespace app\main\controllers\front
 
         public function signout()
         {
-            AuthentificationHandler::unsetUserSession();
-            Go::toFront();
+            AuthenticationHandler::unsetUserSession();
+            Go::to();
         }
 
         public function index()
         {
-            if(!empty(AuthentificationHandler::$data))
-                Go::toFront('a');
+            trace("ok");
+            if(!empty(AuthenticationHandler::$data))
+                Go::to('a');
 
             $f = new Form('search');
             $this->addForm('search', $f);
@@ -70,9 +73,9 @@ namespace app\main\controllers\front
             if($form->isValid())
             {
                 $values = $form->getValues();
-                if(AuthentificationHandler::setUserSession($values['login'], $values['password']))
+                if(AuthenticationHandler::setUserSession($values['login'], $values['password']))
                 {
-                    Go::toFront('a');
+                    Go::to('a');
                 }
                 else
                     $this->addContent('login_error', Dictionary::term('login.error.unknown_user'));

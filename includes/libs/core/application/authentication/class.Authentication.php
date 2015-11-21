@@ -19,7 +19,7 @@ namespace core\application\authentication
 		 * Nom de base de la variable de session
 		 * @var String
 		 */
-		protected $sessionVar = "Authentication_";
+		protected $sessionVar = "authentication_";
 
 		/**
 		 * Indique la valeur des permissions alouées &agrave; l'utilisateur
@@ -47,7 +47,7 @@ namespace core\application\authentication
 
 		/**
 		 * Données de l'utilisateur si son authentication est vérifiée
-		 * @var	Array
+		 * @var	array
 		 */
 		public $data;
 
@@ -74,26 +74,16 @@ namespace core\application\authentication
 		{
 			if(!$this->login_user||!$this->mdp_user||!$this->token)
 			{
-				$this->checkIfNoLogged();
 				return;
 			}
 			$token = $this->getToken($this->mdp_user);
-			if(ModelAuthentication::isUser($this->login_user, $this->mdp_user)&&$token==$this->token)
+			if(ModelAuthentication::isUser($this->login_user, $this->mdp_user, true)&&$token==$this->token)
 			{
 				$this->permissions = ModelAuthentication::$data[Configuration::$authentication_fieldPermissions];
 				$this->data = ModelAuthentication::$data;
 			}
 			else
 				$this->unsetAuthentication();
-		}
-
-		/**
-		 * @return void
-		 */
-		private function checkIfNoLogged()
-		{
-			ModelAuthentication::isUser($this->login_user, $this->mdp_user);
-			$this->data = ModelAuthentication::$data;
 		}
 
 
@@ -106,22 +96,21 @@ namespace core\application\authentication
 		 */
 		public function setAuthentication($pLogin, $pMdp, $pAdmin = false)
 		{
-			$pMdp = md5($pMdp);
-			if(ModelAuthentication::isUser($pLogin, $pMdp))
-			{
-				$lvl = AuthenticationHandler::$permissions[AuthenticationHandler::USER];
-				if($pAdmin)
-					$lvl = AuthenticationHandler::$permissions[AuthenticationHandler::ADMIN];
-				$isAutorized = $lvl&ModelAuthentication::$data[Configuration::$authentication_fieldPermissions];
-
-				if($isAutorized)
-				{
-					$token = $this->getToken($pMdp);
-					$_SESSION[$this->sessionVar] = array("login_user"=>$pLogin, "mdp_user"=>$pMdp,"token"=>$token);
-					return true;
-				}
-			}
-			return false;
+            if(ModelAuthentication::isUser($pLogin, $pMdp))
+            {
+                $lvl = AuthenticationHandler::$permissions[AuthenticationHandler::USER];
+                if($pAdmin)
+                    $lvl = AuthenticationHandler::$permissions[AuthenticationHandler::ADMIN];
+                $isAutorized = $lvl&ModelAuthentication::$data[Configuration::$authentication_fieldPermissions];
+                if($isAutorized)
+                {
+                    $pMdp = ModelAuthentication::getInstance()->getPasswordHash();
+                    $token = $this->getToken($pMdp);
+                    $_SESSION[$this->sessionVar] = array("login_user"=>$pLogin, "mdp_user"=>$pMdp,"token"=>$token);
+                    return true;
+                }
+            }
+            return false;
 		}
 
 

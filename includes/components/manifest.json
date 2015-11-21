@@ -4,65 +4,44 @@
 		"relative":"./"
 	},
 	"HomeShopLater":{
-		"javascript":
-		{
-			"need":["M4Tween"],
-			"src":["shoplater/home.js"]
-		}
+		"need":["M4Tween"],
+		"javascript":["shoplater/home.js"]
 	},
 	"ShopLater":{
-		"javascript":
-		{
-			"src":["shoplater/main.js"]
-		}
+		"javascript":["shoplater/main.js"]
 	},
 	"Dabox":
 	{
-	     "javascript":{
-		     "need":["M4Tween"],
-	         "src":
-	             [
-	                 "dabox/Dabox.js"
-	             ]
-	     }
+		"need":["M4Tween"],
+	 	"javascript":[
+			 "dabox/Dabox.js"
+		 ]
     },
 	"Request":
 	{
-		"javascript":
-		{
-			"src":[
-				"anicolas/Request.js"
-			]
-		}
+		"javascript":[
+			"anicolas/Request.js"
+		]
 	},
     "M4Tween":
     {
-        "javascript":
-        {
-            "src":[
-                "anicolas/M4Tween.js"
-            ]
-        }
+        "javascript":[
+			"anicolas/M4Tween.js"
+		]
     },
     "Form":
     {
         "javascript":
-        {
-            "src":
-                [
-                    "core/Form.js"
-                ]
-        }
+		[
+			"core/Form.js"
+		]
     },
     "Backoffice":
     {
         "javascript":
-        {
-            "src":
-                [
-                    "core/Backoffice.js"
-                ]
-        }
+		[
+			"core/Backoffice.js"
+		]
     },
     "Debugger":
     {
@@ -71,46 +50,34 @@
             "debugger/Debugger.css"
         ],
         "javascript":
-        {
-            "src":
-            [
-                "debugger/Debugger.js"
-            ]
-        }
+		[
+			"debugger/Debugger.js"
+		]
     },
     "Stage":
     {
-        "javascript":
-        {
-            "src":[
-                "http://www.arnaud-nicolas.fr/projects/Dependencies/src/?need=Stage"
-            ]
-        }
+        "javascript":[
+			"http://www.arnaud-nicolas.fr/projects/Dependencies/src/?need=Stage"
+		]
     },
     "StageChart":
     {
+		"need":["Stage"],
         "javascript":
-        {
-            "need":["Stage"],
-            "src":
-            [
-                "anicolas/StageChart.js"
-            ]
-        }
+		[
+			"anicolas/StageChart.js"
+		]
     },
     "Uploader":
     {
         "css":
-            [
-                "uploader/Uploader.css"
-            ],
+		[
+			"uploader/Uploader.css"
+		],
         "javascript":
-        {
-            "src":
-                [
-                    "uploader/Uploader.js"
-                ]
-        }
+		[
+			"uploader/Uploader.js"
+		]
     },
     "Pikaday":
     {
@@ -119,11 +86,8 @@
             "pikaday/pikaday.css"
         ],
         "javascript":
-        {
-            "src":
-             [
-                 "pikaday/pikaday.js"
-             ]
-        }
+		[
+			"pikaday/pikaday.js"
+		]
     }
 }
