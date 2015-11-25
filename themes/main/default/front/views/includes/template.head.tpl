@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="{$configuration.site_currentLanguage}">
+<html>
 	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset={$configuration.site_encoding}" >
+		<meta http-equiv="Content-Type" content="text/html; charset={$configuration.global_encoding}">
         <meta name="viewport" content="width=device-width, user-scalable=no">
 		<link rel="icon" type="image/png" href="{$path_to_theme}/imgs/logo.png" />
         <base href="{$configuration.server_url}"/>

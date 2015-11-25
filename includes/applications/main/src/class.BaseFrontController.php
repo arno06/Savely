@@ -23,8 +23,13 @@ namespace app\main\src
 
 			$f = new Form('addEntry');
 			$this->addForm('addUrl', $f);
-
 		}
 
-	}
+        public function not_found()
+        {
+            $this->setTemplate(null, null, 'template.404.tpl');
+        }
+
+
+    }
 }

@@ -4,6 +4,7 @@
 		<h1 id="main_logo"><a href="a/"></a></h1>
 		<menu class="main">
 			<li><a href="a/explore/" class="toggle" rel="#explore_stick">Explore</a></li>
+			<li><a href="a/lists/" class="toggle" rel="#lists_stick">My lists</a></li>
 		</menu>
 		<menu class="secondary">
 			<li class="add"><a href="" class="icon-plus" rel="#addForm"></a></li>
@@ -13,6 +14,7 @@
 		</menu>
 	</div>
 </header>
+{include file="includes/template.lists_stick.tpl"}
 {include file="includes/template.explore_stick.tpl"}
 {include file="includes/template.account_stick.tpl"}
 	<div class="save{if $controller != "a"} hidden{/if}" id="addForm">
@@ -23,9 +25,10 @@
 {else}
 <header class="disconnected">
 	<div>
-		<h1 id="main_logo">Savely.co</h1>
-		<menu class="login">
+		<h1 id="main_logo"><a href="a/"></a></h1>
+		<menu class="secondary">
 			<li><a href="#login" rel="Dabox[box_login]">connect</a></li>
+			<li><a href="#register" rel="Dabox[box_register]">register</a></li>
 		</menu>
 	</div>
 </header>

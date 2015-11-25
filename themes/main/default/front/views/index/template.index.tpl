@@ -1,18 +1,23 @@
 {if !$request_async}{include file="includes/template.head.tpl"}{/if}
-<div class="home">
-	<div class="call_to_action">
-		<h3>Save products you want to shop later</h3>
-		<button>start</button>
-	</div>
-</div>
 <div id="box_login" style="display:none;">
 	<div id="connect">
 		<h4>Connect</h4>
 		{form_login->display}
 	</div>
 </div>
+<div id="box_register" style="display:none;">
+	<div id="register">
+		<h4>Register</h4>
+		{form_register->display}
+	</div>
+</div>
 
 <div class="index content">
+	<div class="home">
+		<div class="call_to_action">
+			<h3>Save products you want to shop later</h3>
+		</div>
+	</div>
 	<div class="links">
 		{foreach from=$content.products item="link"}
 			<div class="link" id="link_{$link.id_link}" rel="shoplater:graph" data-id="{$link.id_link}">

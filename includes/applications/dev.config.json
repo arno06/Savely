@@ -10,7 +10,7 @@
 			"modules":{
 				"front": {
 					"useRoutingFile":true,
-					"defaultController":"core\\application\\DefaultController",
+					"defaultController":"app\\main\\src\\BaseFrontController",
 					"action404":"not_found"
 				}
 			}
@@ -32,7 +32,7 @@
             "host":"localhost",
             "user":"root",
             "password":"",
-            "name":"fwphp"
+            "name":"savelyco"
         }
     },
     "authentication":

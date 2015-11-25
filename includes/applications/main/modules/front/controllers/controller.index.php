@@ -57,7 +57,6 @@ namespace app\main\controllers\front
 
         public function index()
         {
-            trace("ok");
             if(!empty(AuthenticationHandler::$data))
                 Go::to('a');
 
@@ -69,6 +68,14 @@ namespace app\main\controllers\front
             $this->addScript('Dabox');
             $this->addScript('Request');
             $this->addScript('StageChart');
+            $form_register = new Form('register');
+            if($form_register->isValid())
+            {
+                $values = $form_register->getValues();
+            }
+
+            $this->addForm('register', $form_register);
+
             $form = new Form('login');
             if($form->isValid())
             {
@@ -104,7 +111,6 @@ namespace app\main\controllers\front
             $this->addContent('details', $details);
             $this->addContent('tab', $_GET['tab']);
         }
-
 
         public function states()
         {

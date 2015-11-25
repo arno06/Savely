@@ -113,6 +113,7 @@ namespace app\main\models
 					'header'=>implode('\r\n', $user_headers)
 				)
 			));
+
 			$content = file_get_contents($pUrl, false, $context);
 
 			if(empty($content))
@@ -157,14 +158,24 @@ namespace app\main\models
 
 		public function addState($pUrl, $pIdUser = null)
 		{
+
+            $existing_link = $this->one(Query::condition()->andWhere('url_link', Query::EQUAL, $pUrl)->orWhere('canonical_link', Query::EQUAL, $pUrl));
+            $headers = get_headers($pUrl);
+            $code =  substr($headers[0], 9, 3);
+            if(in_array($code, array(404, 400, 401, 500, 503)) && $existing_link)
+            {
+                $this->deleteById($existing_link[$this->id]);
+                return false;
+            }
+
 			$content = $this->parseLink($pUrl);
 
 			if($content===false || (is_array($content)&&empty($content['title'])&&empty($content['price'])))
 			{
 				return false;
 			}
-
-			$existing_link = $this->one(Query::condition()->andWhere('url_link', Query::EQUAL, $pUrl)->orWhere('canonical_link', Query::EQUAL, $content['canonical']));
+            if(!$existing_link && isset($content['canonical']) && !empty($content['canonical']))
+			    $existing_link = $this->one(Query::condition()->andWhere('url_link', Query::EQUAL, $content['canonical'])->orWhere('canonical_link', Query::EQUAL, $content['canonical']));
 
 			if(!$existing_link)
 				Query::insert(array('url_link'=>$pUrl, 'canonical_link'=>$content['canonical'], 'title_link'=>$content['title'], 'image_link'=>$content['image']))->into($this->table)->execute($this->handler);
@@ -175,7 +186,7 @@ namespace app\main\models
 			if(isset($pIdUser))
 			{
 				if(!Query::count('sil_user_links', Query::condition()->andWhere('id_user', Query::EQUAL, $pIdUser)->andWhere('id_link', Query::EQUAL, $existing_link['id_link'])))
-					Query::insert(array('id_user'=>$pIdUser, 'id_link'=>$existing_link['id_link']), 'sil_user_links')->into('sil_user_links')->execute();
+					Query::insert(array('id_user'=>$pIdUser, 'id_link'=>$existing_link['id_link']))->into('sil_user_links')->execute();
 			}
 
 
@@ -186,7 +197,15 @@ namespace app\main\models
 			return true;
 		}
 
-		private function decorateLink(&$pData)
+        public function deleteById($pId)
+        {
+            Query::delete()->from('sil_user_links')->where('id_link', Query::EQUAL, $pId)->execute($this->handler);
+            Query::delete()->from('sil_states')->where('id_link', Query::EQUAL, $pId)->execute($this->handler);
+            return parent::deleteById($pId);
+        }
+
+
+        private function decorateLink(&$pData)
 		{
 
 			$s = Query::select('*', 'sil_states')->andWhere('id_link', Query::EQUAL, $pData['id_link'])->andWhere('price_state', Query::UPPER, '0')->order('date_state','DESC')->limit('0', '1')->execute($this->handler);

@@ -81,7 +81,7 @@ namespace core\tools\form
 
 		/**
 		 * Constructor
-		 * @param Array $pFile					$_FILES cible
+		 * @param array $pFile					$_FILES cible
 		 * @param String $pFolder				Dossier cible
 		 * @param String $pFileName				Nouveau nom du fichier
 		 */

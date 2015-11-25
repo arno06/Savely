@@ -9,7 +9,14 @@
 					<h2>{$link.title_link|truncate:54:"..."}</h2>
 					<a href="{$link.canonical_link}" target="_blank" title="{$link.canonical_link}" class="merchant"><img src="http://www.{$link.domain_link}/favicon.ico">{$link.domain_link}</a>
 				</div>
-				<div class="price{if $link.weekly_price_link} with_previous_price{/if}">{$link.last_price_link} {if $link.devise_link=="EUR"}&euro;{else}{$link.devise_link}{/if}{if $link.weekly_price_link}<span>{$link.weekly_price_link} {if $link.devise_link=="EUR"}&euro;{else}{$link.devise_link}{/if}</span>{/if}</div>
+				<div class="price{if $link.weekly_price_link} with_previous_price{/if}{if $link.last_price_link == 0} price_unavailable{/if}">
+					{if $link.last_price_link == 0}
+						Price unavailable
+					{else}
+						{$link.last_price_link} {if $link.devise_link=="EUR"}&euro;{else}{$link.devise_link}{/if}
+						{if $link.weekly_price_link}<span>{$link.weekly_price_link} {if $link.devise_link=="EUR"}&euro;{else}{$link.devise_link}{/if}</span>{/if}
+					{/if}
+				</div>
 			</div>
 			<div class="hover">
 				<a href="" class="coupons" rel="shoplater:coupons" data-id="{$link.id_link}">coupons</a>
