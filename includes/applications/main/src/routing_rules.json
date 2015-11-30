@@ -9,6 +9,31 @@
 				"action":"index"
 			}
 		},
+		"list/{$permalink_list}":
+		{
+			"parameters":
+			{
+				"permalink_list":"[a-zA-Z0-9]{8}"
+			},
+			"GET":
+			{
+				"controller":"l",
+				"action":"view"
+			}
+		},
+		"list/{$permalink_list}/edit":
+		{
+			"parameters":
+			{
+				"permalink_list":"[a-zA-Z0-9]{8}",
+				"edit":true
+			},
+			"GET":
+			{
+				"controller":"l",
+				"action":"view"
+			}
+		},
 		"{$controller}/":
 		{
 			"parameters":

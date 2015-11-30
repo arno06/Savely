@@ -2,6 +2,7 @@
 namespace app\main\src
 {
 
+    use app\main\models\ModelList;
     use core\application\authentication\AuthenticationHandler;
     use core\application\DefaultController;
 	use core\application\Go;
@@ -23,12 +24,17 @@ namespace app\main\src
 
 			$f = new Form('addEntry');
 			$this->addForm('addUrl', $f);
+
+            $m = new ModelList();
+
+            $this->addContent('user_lists', $m->retrieveByUser(AuthenticationHandler::$data['id_user'], 5));
 		}
 
         public function not_found()
         {
             $this->setTemplate(null, null, 'template.404.tpl');
         }
+
 
 
     }

@@ -189,3 +189,9 @@ body>.content>div>.main form input[type="submit"]{width:110px;}
 
 .sly-button.nop{background:#F34664;}
 .sly-button.nop:hover{background:#fff;color:#F34664;border-color: #F34664;}
+
+body>.list>div{width:780px;margin:0 auto;}
+body>.list>div.details{padding-top:40px;}
+body>.list>div.details form p input[name="list[name_list]"], body>.list>div.details h2{font-size:24px;font-weight:bold;border:solid 1px transparent;outline:none;width:100%;text-align:center;}
+body>.list>div.details form p input[name="list[name_list]"]:hover{border-color:#bbb;}
+body>.list>div.details form p input[name="list[name_list]"]:focus{border-color:#444;}
