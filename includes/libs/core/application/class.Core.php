@@ -123,8 +123,12 @@ namespace core\application
          * @param string $pFile
          * @throws \Exception
          */
-		static public function checkEnvironment($pFile = "includes/applications/setup.json")
+		static public function checkEnvironment($pFile = null)
 		{
+            if(is_null($pFile))
+            {
+                $pFile = Autoload::$folder."/includes/applications/setup.json";
+            }
 			$setup = SimpleJSON::import($pFile);
 			self::$config_file = "/includes/applications/dev.config.json";
 			if(!$setup)
