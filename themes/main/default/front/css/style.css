@@ -4,6 +4,7 @@
 html, body{min-height:100%;width:100%;padding:0;margin:0;}
 
 *{font-family: MuseoSans-500, sans-serif;outline: none;}
+*::selection{background-color:#f64667;color:#fff;}
 
 [class^="icon-"], [class*=" icon-"] {font-family: 'icomoon', sans-serif;font-style: normal;font-weight: normal;font-variant: normal;text-transform: none;line-height: 1;/* Better Font Rendering =========== */-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;}
 .icon-tag:before {content: "\e600";}
@@ -29,7 +30,7 @@ html, body{min-height:100%;width:100%;padding:0;margin:0;}
 #Dabox #connect,#Dabox #register{padding:17px 30px 30px;}
 #Dabox h4{	padding:0 0 13px;margin:0 0 25px;text-align: center;font-size:24px;	border-bottom:solid 1px #dadada;font-weight: normal;}
 
-form input[type="text"], form input[type="password"]{width:192px;height:39px;padding:0 10px;border:solid 1px #cccccc;	border-radius: 5px;	outline: none;transition:all .3s;}
+form input[type="text"], form input[type="password"]{width:192px;height:39px;padding:0 10px;border:solid 1px #cccccc;	border-radius: 5px;	outline: none;transition:border-color .3s;}
 form input[type="text"]:focus, form input[type="password"]:focus{border-color:#23bbf3;}
 form input[type="submit"]{background:#23bbf3;border:solid 1px #23bbf3;width:214px;height:41px;border-radius: 3px;color:#fff;	cursor: pointer;transition:all .3s;font-size:18px;}
 form input[type="submit"]:hover{background:#fff;color:#23bbf3;}
@@ -192,6 +193,11 @@ body>.content>div>.main form input[type="submit"]{width:110px;}
 
 body>.list>div{width:780px;margin:0 auto;}
 body>.list>div.details{padding-top:40px;}
-body>.list>div.details form p input[name="list[name_list]"], body>.list>div.details h2{font-size:24px;font-weight:bold;border:solid 1px transparent;outline:none;width:100%;text-align:center;}
+body>.list>div.details form p input[name="list[name_list]"], body>.list>div.details h2{font-size:24px;font-weight:bold;border:solid 1px transparent;outline:none;width:100%;text-align:center;transition:background-color .5s;}
 body>.list>div.details form p input[name="list[name_list]"]:hover{border-color:#bbb;}
 body>.list>div.details form p input[name="list[name_list]"]:focus{border-color:#444;}
+body>.list>div.details form p input[name="list[name_list]"].error{background-color: rgba(255, 0, 0, .2);}
+body>.list>div.details form p input[name="list[name_list]"].confirmation{background-color: rgba(0, 255, 0, .2);}
+body>.list>div.details form p input[name="list[name_list]"].loading{background:#fff url('../imgs/loading.gif') no-repeat right center;}
+
+body>.list .empty{font-size:18px;color:#aaa;text-align:center;padding-top:20px;}

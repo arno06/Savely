@@ -5,10 +5,14 @@
 	},
 	"HomeShopLater":{
 		"need":["M4Tween"],
-		"javascript":["shoplater/home.js"]
+		"javascript":["savely/home.js"]
 	},
 	"ShopLater":{
-		"javascript":["shoplater/main.js"]
+		"javascript":["savely/main.js"]
+	},
+	"Savely.ListEdit":{
+		"need":["Request"],
+		"javascript":["savely/listedit.js"]
 	},
 	"Dabox":
 	{

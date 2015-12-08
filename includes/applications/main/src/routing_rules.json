@@ -34,6 +34,19 @@
 				"action":"view"
 			}
 		},
+		"list/{$permalink_list}/edit/{$prop_list}":
+		{
+			"parameters":
+			{
+				"permalink_list":"[a-zA-Z0-9]{8}",
+				"prop_list":"(name_list|public_list|share_list)"
+			},
+			"POST":
+			{
+				"controller":"l",
+				"action":"update"
+			}
+		},
 		"{$controller}/":
 		{
 			"parameters":

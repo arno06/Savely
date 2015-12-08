@@ -1,10 +1,13 @@
 {if !$request_async}{include file="includes/template.head.tpl"}{/if}
-
+<script type="application/javascript">
+	var list = {literal}{{/literal}
+		'permalink':'{$content.data.permalink_list}'
+	{literal}};{/literal}
+</script>
 <div class="list edit">
 	<div class="details">
 		<form action="" method="post">
 			<p><input type="text" name="list[name_list]" value="{$content.data.name_list}"></p>
-			<p></p>
 		</form>
 	</div>
 	<div class="links">
@@ -23,6 +26,8 @@
 					<a href="{$link.canonical_link}" class="buy">buy</a>
 				</div>
 			</div>
+		{foreachelse}
+			<div class="empty">No product yet.</div>
 		{/foreach}
 	</div>
 </div>
